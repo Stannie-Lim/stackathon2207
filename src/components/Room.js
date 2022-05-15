@@ -47,38 +47,42 @@ export const Room = ({ match }) => {
 
       const removed = [...removingDuplicates].map(id => idToSong.get(id));
 
+      const socket = io('https://formarcibae.herokuapp.com', {
+        transports: ["websocket"],
+      });
+
+      // TODO remove the id when i get another spotify account
+      socket.emit('join_room', { 
+        user: { ...user, id: String(Math.floor(Math.random() * 9999) + 10000) }, 
+        roomcode: roomId,
+        songs: removed,
+      });
+
+      socket.on('join', (room) => {
+        setUsers(room.users);
+      });
+
+      socket.on('sync_songs', (songs) => {
+        setSongs(songs);
+      });
+
+      const getRoomData = async() => {
+        const { data } = await AxiosHttpRequest('GET', `/api/room/${roomId}`);
+        setRoomData(data);
+      };
+
+      getRoomData();
+        
       setSongs(removed);
       setLoading(false);
     };
 
     getPlaylists();
-  }, []);
-
-  useEffect(() => {
-    const socket = io('https://formarcibae.herokuapp.com', {
-      transports: ["websocket"],
-    });
-
-    // TODO remove the id when i get another spotify account
-    socket.emit('join_room', { user: { ...user, id: String(Math.floor(Math.random() * 9999) + 10000) }, roomcode: roomId });
-
-    socket.on('join', (room) => {
-      setUsers(room.users);
-    });
-
-    const getRoomData = async() => {
-      const { data } = await AxiosHttpRequest('GET', `/api/room/${roomId}`);
-      setRoomData(data);
-    };
-
-    getRoomData();
 
     return function() {
       socket.emit('disconnect_room', { userId: user.id, roomcode: roomId });
     };
   }, []);
-
-  console.log(songs);
 
   return (
     <RoomContext.Provider value={roomData}>

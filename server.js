@@ -23,7 +23,6 @@ syncAndSeed()
 io.on('connection', socket => {
   console.log(`[${socket.id}] socket connected`);
   socket.on('disconnect_room', async ({ userId, roomcode }) => {
-    console.log(userId, roomcode);
     const user = await User.findByPk(userId);
 
     if (user) {
@@ -34,7 +33,7 @@ io.on('connection', socket => {
     io.to(roomcode).emit('join', await Room.findByPk(roomcode, { include: User }));
   });
 
-  socket.on('join_room', async ({ user, roomcode }) => {
+  socket.on('join_room', async ({ user, roomcode, songs }) => {
     const userId = user.id;
 
     let dbUser = await User.findByPk(userId);
@@ -46,5 +45,6 @@ io.on('connection', socket => {
 
     socket.join(roomcode);
     io.to(roomcode).emit('join', await Room.findByPk(roomcode, { include: User }));
+    io.to(roomcode).emit('sync_songs', songs);
   });
 });

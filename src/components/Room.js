@@ -53,7 +53,8 @@ export const Room = ({ match }) => {
 
       // TODO remove the id when i get another spotify account
       socket.emit('join_room', { 
-        user: { ...user, id: String(Math.floor(Math.random() * 9999) + 10000) }, 
+        // user: { ...user, id: String(Math.floor(Math.random() * 9999) + 10000) }, 
+        user,
         roomcode: roomId,
         songs: removed,
       });

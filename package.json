@@ -16,7 +16,6 @@
   "devDependencies": {
     "@babel/core": "^7.17.9",
     "@babel/preset-react": "^7.16.7",
-    "axios": "^0.27.2",
     "babel-loader": "^8.2.5",
     "nodemon": "^2.0.15",
     "react": "^17.0.2",
@@ -39,6 +38,7 @@
     "react-spotify-web-playback": "^0.9.2",
     "sequelize": "^6.19.0",
     "socket.io": "^4.5.0",
+    "axios": "^0.27.2",
     "socket.io-client": "^4.5.0"
   }
 }

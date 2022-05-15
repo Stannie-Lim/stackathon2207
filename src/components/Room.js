@@ -6,6 +6,8 @@ import { AxiosHttpRequest } from '../helpers/axios';
 
 import { UserContext, RoomContext } from '../context';
 
+import { Songs } from './Songs';
+
 export const Room = ({ match }) => {
   const { id: roomId } = match.params;
   const [roomData, setRoomData] = useState(null);
@@ -50,19 +52,22 @@ export const Room = ({ match }) => {
             </Grid>
           </Grid>
         </Grid>
-        <Grid item>
-          {users.map(user => (
-            <Card variant="outlined" key={user.id} style={{ padding: '0.5rem' }}>
-              <Grid container alignItems="center">
-                <Grid item>
-                  <Avatar src={user.imageUrl} />
+        <Grid container item justifyContent="space-between" spacing={5}>
+          <Grid item xs={6}>
+            {users.map(user => (
+              <Card variant="outlined" key={user.id} style={{ padding: '0.5rem' }}>
+                <Grid container alignItems="center">
+                  <Grid item>
+                    <Avatar src={user.imageUrl} />
+                  </Grid>
+                  <Grid item>
+                    <Typography>{user.name}</Typography>
+                  </Grid>
                 </Grid>
-                <Grid item>
-                  <Typography>{user.name}</Typography>
-                </Grid>
-              </Grid>
-            </Card>
-          ))}
+              </Card>
+            ))}
+          </Grid>
+          <Songs />
         </Grid>
       </Grid>
     </RoomContext.Provider>

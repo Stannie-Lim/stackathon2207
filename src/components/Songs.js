@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 
-import { Avatar, Grid, Typography } from '@material-ui/core';
+import { Avatar, CircularProgress, Grid, Typography } from '@material-ui/core';
 
 import { UserContext, RoomContext } from '../context';
 import { AxiosHttpRequest } from '../helpers/axios';
@@ -8,9 +8,11 @@ import { AxiosHttpRequest } from '../helpers/axios';
 export const Songs = () => {
   const user = useContext(UserContext);
   const [songs, setSongs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getPlaylists = async () => {
+      setLoading(true);
       const url = `https://api.spotify.com/v1/users/${user.id}/playlists`;
       const { data } = await AxiosHttpRequest('GET', url);
       const tracks = data.items.map(({ tracks }) => tracks);
@@ -34,11 +36,14 @@ export const Songs = () => {
       const removed = [...removingDuplicates].map(id => idToSong.get(id));
 
       setSongs(removed);
+      setLoading(false);
     };
 
     getPlaylists();
   }, []);
-  console.log(songs);
+
+  if (loading) return <CircularProgress />
+  
   return (
     <Grid container item xs={6} style={{ overflow: 'auto', maxHeight: '80vh' }}>
       {songs.map(({ track }) => (

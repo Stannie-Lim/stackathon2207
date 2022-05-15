@@ -7,6 +7,8 @@ import { AxiosHttpRequest } from '../helpers/axios';
 import { UserContext, RoomContext } from '../context';
 
 import { Songs } from './Songs';
+import { RoomNav } from './RoomNav';
+import { RoomSongs } from './RoomSongs';
 
 export const Room = ({ match }) => {
   const { id: roomId } = match.params;
@@ -42,31 +44,9 @@ export const Room = ({ match }) => {
   return (
     <RoomContext.Provider value={roomData}>
       <Grid container spacing={3}>
-        <Grid container item>
-          <Grid item>
-            <Link href='/'>Leave room</Link>
-          </Grid>
-          <Grid container item justifyContent="center">
-            <Grid item>
-              <Typography variant="h3">{roomId}</Typography>
-            </Grid>
-          </Grid>
-        </Grid>
+        <RoomNav roomId={roomId} />
         <Grid container item justifyContent="space-between" spacing={5}>
-          <Grid item xs={6}>
-            {users.map(user => (
-              <Card variant="outlined" key={user.id} style={{ padding: '0.5rem' }}>
-                <Grid container alignItems="center">
-                  <Grid item>
-                    <Avatar src={user.imageUrl} />
-                  </Grid>
-                  <Grid item>
-                    <Typography>{user.name}</Typography>
-                  </Grid>
-                </Grid>
-              </Card>
-            ))}
-          </Grid>
+          <RoomSongs users={users} />
           <Songs />
         </Grid>
       </Grid>

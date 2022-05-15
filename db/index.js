@@ -13,23 +13,15 @@ const User = db.define('user', {
     type: Sequelize.DataTypes.STRING,
     primaryKey: true,
   },
+  name: {
+    type: Sequelize.DataTypes.STRING,
+    allowNull: false,
+  },
+  imageUrl: {
+    type: Sequelize.DataTypes.STRING,
+    allowNull: false,
+  },
 });
-
-// Room.beforeCreate(function() {
-//   const createId = async (length = 5) => {
-//     let result = '';
-//     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-//     const charactersLength = characters.length;
-//     for (let i = 0; i < length; i++ ) {
-//       result += characters.charAt(Math.floor(Math.random() * charactersLength));
-//     }
-
-//     if (await Room.findByPk(result)) return createId();
-//     return result;
-//   }
-//   console.log('hell asdsadsadao');
-//   this.id = createId();
-// });
 
 User.belongsTo(Room);
 Room.hasMany(User);

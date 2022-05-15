@@ -34,13 +34,15 @@ io.on('connection', socket => {
     io.to(roomcode).emit('join', await Room.findByPk(roomcode, { include: User }));
   });
 
-  socket.on('join_room', async ({ userId, roomcode }) => {
-    let user = await User.findByPk(userId);
-    if (!user) user = await User.create({ spotifyId: userId });
+  socket.on('join_room', async ({ user, roomcode }) => {
+    const userId = user.id;
+
+    let dbUser = await User.findByPk(userId);
+    if (!dbUser) dbUser = await User.create({ spotifyId: userId, name: user.display_name, imageUrl: user.images[0].url });
 
     const room = await Room.findByPk(roomcode);
-    user.roomId = room.id;
-    await user.save();
+    dbUser.roomId = room.id;
+    await dbUser.save();
 
     socket.join(roomcode);
     io.to(roomcode).emit('join', await Room.findByPk(roomcode, { include: User }));

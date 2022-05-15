@@ -27,13 +27,17 @@ router.get('/callback', async(req, res, next) => {
   };
   try {
     const base64 = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString('base64');
-    const { access_token, refresh_token } = (await axios.post(`https://accounts.spotify.com/api/token`, qs.stringify(body), { 
+    const { data: { access_token, refresh_token } } = await axios.post(`https://accounts.spotify.com/api/token`, qs.stringify(body), { 
       headers: { 
         'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: `Basic ${base64}`,
       }
-    })).data;
-    res.redirect(`${process.env.URL}/#/${access_token}/${refresh_token}`);
+    });
+
+    const tokens = new URLSearchParams();
+    tokens.append('access_token', access_token);
+    tokens.append('refresh_token', refresh_token);
+    res.redirect(`${process.env.URL}/#/${tokens}`);
   } catch(err) {
     next(err);
   }

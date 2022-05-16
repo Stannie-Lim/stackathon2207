@@ -12,15 +12,38 @@ import { Songs } from './Songs';
 import { RoomNav } from './RoomNav';
 import { RoomUsers } from './RoomUsers';
 
-export const Room = ({ match }) => {
+const removeDuplicates = (songs) => {
+  const idToSong = new Map();
+  const removingDuplicates = new Set();
+
+  for (const song of songs) {
+    const { uri } = song.track;
+    idToSong.set(uri, song);
+
+    removingDuplicates.add(uri);
+  }
+
+  const removed = [...removingDuplicates].map(uri => idToSong.get(uri));
+
+  return removed;
+};
+
+export const Room = ({ match, history }) => {
   const { id: roomId } = match.params;
   const [roomData, setRoomData] = useState(null);
+  const [socket, setSocket] = useState(null);
+
   const user = useContext(UserContext);
 
   const [users, setUsers] = useState([]);
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+  const [currentStatus, setCurrentStatus] = useState(null);
+
+  const leaveRoom = () => {
+    socket.emit('disconnect_room', { userId: user.id, roomcode: roomId });
+  };
 
   useEffect(() => {
     const getPlaylists = async () => {
@@ -35,36 +58,26 @@ export const Room = ({ match }) => {
         ))
       )).map(({ data }) => data.items).flat();
 
-      const idToSong = new Map();
-      const removingDuplicates = new Set();
+      const removed = removeDuplicates(songs);
 
-      for (const song of songs) {
-        const { id } = song.track;
-        idToSong.set(id, song);
-
-        removingDuplicates.add(id);
-      }
-
-      const removed = [...removingDuplicates].map(id => idToSong.get(id));
-
-      const socket = io('https://formarcibae.herokuapp.com', {
+      // https://formarcibae.herokuapp.com
+      const socket = io('http://localhost:3000', {
         transports: ["websocket"],
       });
 
-      // TODO remove the id when i get another spotify account
       socket.emit('join_room', { 
-        // user: { ...user, id: String(Math.floor(Math.random() * 9999) + 10000) }, 
         user,
         roomcode: roomId,
-        songs: removed,
+        songs,
       });
 
       socket.on('join', (room) => {
         setUsers(room.users);
+        socket.emit('sync_songs', { roomId, songs });
       });
 
-      socket.on('sync_songs', (songs) => {
-        setSongs(songs);
+      socket.on('sync_songs', (roomSongs) => {
+        setSongs(removeDuplicates([...songs, ...roomSongs]));
       });
 
       const getRoomData = async() => {
@@ -76,19 +89,20 @@ export const Room = ({ match }) => {
         
       setSongs(removed);
       setLoading(false);
+      setSocket(socket);
     };
 
     getPlaylists();
-
-    return function() {
-      socket.emit('disconnect_room', { userId: user.id, roomcode: roomId });
-    };
   }, []);
+
+  const changeTrack = (status) => {
+    setCurrentStatus(status);
+  };
 
   return (
     <RoomContext.Provider value={roomData}>
       <Grid container spacing={3}>
-        <RoomNav roomId={roomId} />
+        <RoomNav roomId={roomId} leaveRoom={leaveRoom} history={history} />
         <Grid container item justifyContent="space-between" spacing={5}>
           <RoomUsers users={users} />
           <Songs loading={loading} songs={songs} currentlyPlaying={currentlyPlaying} />
@@ -98,6 +112,7 @@ export const Room = ({ match }) => {
             token={getAccessToken()}
             autoPlay
             uris={songs.map(({ track }) => track.uri)}
+            callback={changeTrack}
           />
         </Grid>
       </Grid>

@@ -47,4 +47,6 @@ io.on('connection', socket => {
     io.to(roomcode).emit('join', await Room.findByPk(roomcode, { include: User }));
     io.to(roomcode).emit('sync_songs', songs);
   });
+
+  socket.on('sync_songs', ({ roomId, songs }) => io.to(roomId).emit('sync_songs', songs));
 });

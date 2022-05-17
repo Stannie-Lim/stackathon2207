@@ -58,7 +58,7 @@ export const Home = () => {
               label="Room code"
               fullWidth
               value={roomCode}
-              onChange={({ target }) => setRoomCode(target.value)}
+              onChange={({ target }) => setRoomCode(target.value.toUpperCase())}
               required
             />
           </DialogContent>

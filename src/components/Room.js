@@ -45,17 +45,14 @@ export const Room = ({ match, history }) => {
   };
 
   useEffect(() => {
-    const location = window.location.origin;
+    const location = window.location.origin.replace('http', 'ws');
     const socket = io(location, {
       transports: ["websocket"],
     });
-
-    setSocketState(socket);
-  }, []);
-
-  useEffect(() => {
+    
     const getPlaylists = async () => {
       setLoading(true);
+
       const url = `https://api.spotify.com/v1/me/playlists`;
       const { data } = await AxiosHttpRequest('GET', url);
       const tracks = data.items.map(({ tracks }) => tracks);
@@ -65,43 +62,49 @@ export const Room = ({ match, history }) => {
           AxiosHttpRequest('GET', track.href)
         ))
       )).map(({ data }) => data.items).flat();
-      const removed = removeDuplicates(songs);
-      socketState.emit('join_room', { 
+
+      socket.emit('join_room', { 
         user,
         roomcode: roomId,
         songs,
       });
 
-      socketState.on('join', (room) => {
-        setUsers(room.users);
-        socketState.emit('sync_songs', { roomId, songs });
-      });
-
-      socketState.on('sync_songs', (roomSongs) => {
-        setSongs(removeDuplicates([...songs, ...roomSongs]));
-      });
-
-      socketState.on('change_song', (index) => {
-        setOffset(index);
-      });
-
-      socketState.on('pauseunpause', (play) => {
-        setPlay(play);
-      });
+      const removed = removeDuplicates(songs);
 
       const getRoomData = async() => {
         const { data } = await AxiosHttpRequest('GET', `/api/room/${roomId}`);
         setRoomData(data);
       };
 
-      getRoomData();
-        
-      setSongs(removed);
-      setLoading(false);
+      const setUpSocket = () => {
+        socket.on('join', (room) => {
+          setUsers(room.users);
+          socket.emit('sync_songs', { roomId, songs });
+        });
+
+        socket.on('sync_songs', (roomSongs) => {
+          setSongs(removeDuplicates([...songs, ...roomSongs]));
+        });
+
+        socket.on('change_song', (index) => {
+          setOffset(index);
+        });
+
+        socket.on('pauseunpause', (play) => {
+          setPlay(play);
+        });
+
+        getRoomData();
+        setSongs(removed);
+        setLoading(false);
+        setSocketState(socket);
+      };
+
+      setUpSocket();
     };
 
-    if (socketState) getPlaylists();
-  }, [socketState]);
+    getPlaylists();
+  }, []);
 
   const changeTrack = (status) => {
     if (status.type === 'player_update') {
@@ -117,10 +120,10 @@ export const Room = ({ match, history }) => {
       };
     }
 
-    socketState.emit('change_song', { roomId, index });
+    socketState?.emit('change_song', { roomId, index });
   };
 
-  if (!socketState) {
+  if (socketState && !socketState.connected) {
     return <Typography>Socket failed to connect idk why very sorry</Typography>
   };
 

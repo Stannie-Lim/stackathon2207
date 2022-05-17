@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import io from "socket.io-client";
 import SpotifyPlayer from 'react-spotify-web-playback';
 
-import { Grid } from '@material-ui/core';
+import { Grid, Typography } from '@material-ui/core';
 
 import { AxiosHttpRequest, getAccessToken } from '../helpers/axios';
 
@@ -24,31 +24,39 @@ const removeDuplicates = (songs) => {
   }
 
   const removed = [...removingDuplicates].map(uri => idToSong.get(uri));
-
-  return removed;
+  return removed.sort((a, b) => a.track.name.localeCompare(b.track.name));
 };
 
 export const Room = ({ match, history }) => {
   const { id: roomId } = match.params;
   const [roomData, setRoomData] = useState(null);
-  const [socket, setSocket] = useState(null);
 
   const user = useContext(UserContext);
 
   const [users, setUsers] = useState([]);
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
-  const [currentStatus, setCurrentStatus] = useState(null);
+  const [socketError, setSocketError] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [socketState, setSocketState] = useState(null);
 
   const leaveRoom = () => {
-    socket.emit('disconnect_room', { userId: user.id, roomcode: roomId });
+    socketState.emit('disconnect_room', { userId: user.id, roomcode: roomId });
   };
+
+  useEffect(() => {
+    // https://formarcibae.herokuapp.com
+    const socket = io('https://formarcibae.herokuapp.com', {
+      transports: ["websocket"],
+    });
+
+    setSocketState(socket);
+  }, []);
 
   useEffect(() => {
     const getPlaylists = async () => {
       setLoading(true);
-      const url = `https://api.spotify.com/v1/users/${user.id}/playlists`;
+      const url = `https://api.spotify.com/v1/me/playlists`;
       const { data } = await AxiosHttpRequest('GET', url);
       const tracks = data.items.map(({ tracks }) => tracks);
 
@@ -57,27 +65,25 @@ export const Room = ({ match, history }) => {
           AxiosHttpRequest('GET', track.href)
         ))
       )).map(({ data }) => data.items).flat();
-
       const removed = removeDuplicates(songs);
 
-      // https://formarcibae.herokuapp.com
-      const socket = io('http://localhost:3000', {
-        transports: ["websocket"],
-      });
-
-      socket.emit('join_room', { 
+      socketState.emit('join_room', { 
         user,
         roomcode: roomId,
         songs,
       });
 
-      socket.on('join', (room) => {
+      socketState.on('join', (room) => {
         setUsers(room.users);
-        socket.emit('sync_songs', { roomId, songs });
+        socketState.emit('sync_songs', { roomId, songs });
       });
 
-      socket.on('sync_songs', (roomSongs) => {
+      socketState.on('sync_songs', (roomSongs) => {
         setSongs(removeDuplicates([...songs, ...roomSongs]));
+      });
+
+      socketState.on('change_song', (index) => {
+        setOffset(index);
       });
 
       const getRoomData = async() => {
@@ -89,14 +95,25 @@ export const Room = ({ match, history }) => {
         
       setSongs(removed);
       setLoading(false);
-      setSocket(socket);
     };
 
-    getPlaylists();
-  }, []);
+    if (socketState) getPlaylists();
+  }, [socketState]);
 
   const changeTrack = (status) => {
-    setCurrentStatus(status);
+    let index = 0;
+    for (let i = 0; i < songs.length; i++) {
+      if (songs[i].track.name === status.track.name) {
+        index = i;
+        break;
+      };
+    }
+
+    socketState.emit('change_song', { roomId, index });
+  };
+
+  if (!socketState) {
+    return <Typography>Socket failed to connect idk why very sorry</Typography>
   };
 
   return (
@@ -105,10 +122,11 @@ export const Room = ({ match, history }) => {
         <RoomNav roomId={roomId} leaveRoom={leaveRoom} history={history} />
         <Grid container item justifyContent="space-between" spacing={5}>
           <RoomUsers users={users} />
-          <Songs loading={loading} songs={songs} currentlyPlaying={currentlyPlaying} />
+          <Songs loading={loading} songs={songs} />
         </Grid>
         <Grid item xs={12}>
           <SpotifyPlayer
+            offset={offset}
             token={getAccessToken()}
             autoPlay
             uris={songs.map(({ track }) => track.uri)}

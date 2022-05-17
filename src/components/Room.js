@@ -36,7 +36,6 @@ export const Room = ({ match, history }) => {
   const [users, setUsers] = useState([]);
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [socketError, setSocketError] = useState(false);
   const [offset, setOffset] = useState(0);
   const [socketState, setSocketState] = useState(null);
   const [play, setPlay] = useState(true);
@@ -53,6 +52,7 @@ export const Room = ({ match, history }) => {
 
     setSocketState(socket);
   }, []);
+  console.log(songs.length);
 
   useEffect(() => {
     const getPlaylists = async () => {

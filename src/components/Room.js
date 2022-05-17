@@ -39,6 +39,7 @@ export const Room = ({ match, history }) => {
   const [socketError, setSocketError] = useState(false);
   const [offset, setOffset] = useState(0);
   const [socketState, setSocketState] = useState(null);
+  const [play, setPlay] = useState(true);
 
   const leaveRoom = () => {
     socketState.emit('disconnect_room', { userId: user.id, roomcode: roomId });
@@ -86,6 +87,10 @@ export const Room = ({ match, history }) => {
         setOffset(index);
       });
 
+      socketState.on('pauseunpause', (play) => {
+        setPlay(play);
+      });
+
       const getRoomData = async() => {
         const { data } = await AxiosHttpRequest('GET', `/api/room/${roomId}`);
         setRoomData(data);
@@ -101,6 +106,11 @@ export const Room = ({ match, history }) => {
   }, [socketState]);
 
   const changeTrack = (status) => {
+    if (status.type === 'player_update') {
+      socketState.emit('pauseunpause', ({ roomId, play: status.isPlaying }));
+      return;
+    }
+
     let index = 0;
     for (let i = 0; i < songs.length; i++) {
       if (songs[i].track.name === status.track.name) {
@@ -128,7 +138,7 @@ export const Room = ({ match, history }) => {
           <SpotifyPlayer
             offset={offset}
             token={getAccessToken()}
-            autoPlay
+            play={play}
             uris={songs.map(({ track }) => track.uri)}
             callback={changeTrack}
           />

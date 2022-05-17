@@ -47,7 +47,7 @@ export const Room = ({ match, history }) => {
 
   useEffect(() => {
     // https://formarcibae.herokuapp.com
-    const socket = io('https://formarcibae.herokuapp.com', {
+    const socket = io('http://localhost:3000', {
       transports: ["websocket"],
     });
 
@@ -67,7 +67,6 @@ export const Room = ({ match, history }) => {
         ))
       )).map(({ data }) => data.items).flat();
       const removed = removeDuplicates(songs);
-
       socketState.emit('join_room', { 
         user,
         roomcode: roomId,

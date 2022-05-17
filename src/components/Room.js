@@ -52,7 +52,6 @@ export const Room = ({ match, history }) => {
 
     setSocketState(socket);
   }, []);
-  console.log(songs.length);
 
   useEffect(() => {
     const getPlaylists = async () => {

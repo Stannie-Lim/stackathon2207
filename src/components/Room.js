@@ -45,8 +45,8 @@ export const Room = ({ match, history }) => {
   };
 
   useEffect(() => {
-    // https://formarcibae.herokuapp.com
-    const socket = io('https://formarcibae.herokuapp.com', {
+    const location = window.location.origin;
+    const socket = io(location, {
       transports: ["websocket"],
     });
 

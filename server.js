@@ -36,6 +36,16 @@ io.on('connection', socket => {
   socket.on('join_room', async ({ user, roomcode, songs }) => {
     const userId = user.id;
 
+    // const dbUser = await User.findOrCreate({
+    //   where: {
+    //     spotifyId: userId,
+    //   },
+    //   defaults: {
+    //     spotifyId: userId,
+    //     name: user.display_name,
+    //     imageUrl: user.images[0].url,
+    //   },
+    // });
     let dbUser = await User.findByPk(userId);
     if (!dbUser) dbUser = await User.create({ spotifyId: userId, name: user.display_name, imageUrl: user.images[0].url });
 

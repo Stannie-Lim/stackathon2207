@@ -46,7 +46,7 @@ export const Room = ({ match, history }) => {
 
   useEffect(() => {
     // https://formarcibae.herokuapp.com
-    const socket = io('http://localhost:3000', {
+    const socket = io('https://formarcibae.herokuapp.com', {
       transports: ["websocket"],
     });
 

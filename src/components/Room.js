@@ -11,6 +11,7 @@ import { UserContext, RoomContext } from '../context';
 import { Songs } from './Songs';
 import { RoomNav } from './RoomNav';
 import { RoomUsers } from './RoomUsers';
+import { SpotifyWebPlayer } from './SpotifyWebPlayer';
 
 const removeDuplicates = (songs) => {
   const idToSong = new Map();
@@ -38,8 +39,9 @@ export const Room = ({ match, history }) => {
   const [loading, setLoading] = useState(true);
   const [offset, setOffset] = useState(0);
   const [socketState, setSocketState] = useState(null);
-  const [play, setPlay] = useState(true);
-
+  const [play, setPlay] = useState(false);
+  const [position, setPosition] = useState(0);
+  
   const leaveRoom = () => {
     socketState.emit('disconnect_room', { userId: user.id, roomcode: roomId });
   };
@@ -106,25 +108,21 @@ export const Room = ({ match, history }) => {
     getPlaylists();
   }, []);
 
-  const changeTrack = (status) => {
-    if (status.type === 'player_update') {
-      socketState.emit('pauseunpause', ({ roomId, play: status.isPlaying }));
-      return;
+  console.log(play);
+
+  useEffect(() => {
+    if (socketState) {
+      socketState.emit('pauseunpause', { roomId, play });
+      socketState.emit('change_song', { roomId, index: offset });
     }
+  }, [position, play, offset]);
 
-    let index = 0;
-    for (let i = 0; i < songs.length; i++) {
-      if (songs[i].track.name === status.track.name) {
-        index = i;
-        break;
-      };
-    }
+  // if (socketState && !socketState.connected) {
+  //   return <Typography>Socket failed to connect idk why very sorry</Typography>
+  // };
 
-    socketState?.emit('change_song', { roomId, index });
-  };
-
-  if (socketState && !socketState.connected) {
-    return <Typography>Socket failed to connect idk why very sorry</Typography>
+  const togglePlay = () => {
+    setPlay(!play);
   };
 
   return (
@@ -136,13 +134,7 @@ export const Room = ({ match, history }) => {
           <Songs loading={loading} songs={songs} />
         </Grid>
         <Grid item xs={12}>
-          <SpotifyPlayer
-            offset={offset}
-            token={getAccessToken()}
-            play={play}
-            uris={songs.map(({ track }) => track.uri)}
-            callback={changeTrack}
-          />
+          <SpotifyWebPlayer songs={songs} offset={offset} isPlaying={play} isPlay={play} togglePlay={togglePlay} setOffset={setOffset} setPosition={setPosition} />
         </Grid>
       </Grid>
     </RoomContext.Provider>

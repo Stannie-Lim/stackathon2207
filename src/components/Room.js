@@ -108,18 +108,13 @@ export const Room = ({ match, history }) => {
     getPlaylists();
   }, []);
 
-  console.log(play);
-
   useEffect(() => {
     if (socketState) {
       socketState.emit('pauseunpause', { roomId, play });
       socketState.emit('change_song', { roomId, index: offset });
+      socketState.emit('change_position', { roomId, position });
     }
-  }, [position, play, offset]);
-
-  // if (socketState && !socketState.connected) {
-  //   return <Typography>Socket failed to connect idk why very sorry</Typography>
-  // };
+  }, [position, play, offset, position]);
 
   const togglePlay = () => {
     setPlay(!play);
@@ -134,7 +129,7 @@ export const Room = ({ match, history }) => {
           <Songs loading={loading} songs={songs} />
         </Grid>
         <Grid item xs={12}>
-          <SpotifyWebPlayer songs={songs} offset={offset} isPlaying={play} isPlay={play} togglePlay={togglePlay} setOffset={setOffset} setPosition={setPosition} />
+          <SpotifyWebPlayer songs={songs} offset={offset} isPlaying={play} isPlay={play} togglePlay={togglePlay} setOffset={setOffset} setPosition={setPosition} position={position} />
         </Grid>
       </Grid>
     </RoomContext.Provider>

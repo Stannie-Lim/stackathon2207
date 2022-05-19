@@ -10,12 +10,14 @@ import PauseIcon from '@material-ui/icons/Pause';
 
 import { getAccessToken, AxiosHttpRequest } from '../helpers/axios';
 
-export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosition, isPlaying }) => {
+export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosition, isPlaying, position }) => {
   const [player, setPlayer] = useState(null);
   const [deviceId, setDeviceId] = useState(null);
   const [playerState, setPlayerState] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const play = async () => {
+  const play = async (songs, offset, isPlaying, position) => {
+    console.log(offset, isPlaying);
     try {
       if (!isPlaying) {
         await AxiosHttpRequest('PUT', `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, JSON.stringify({ uris: songs.map(({ track }) => track.uri), position_ms: playerState?.position || 0, offset: { position: offset } }));
@@ -58,10 +60,14 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
   }, [window.Spotify]);
 
   useEffect(() => {
-    play();
-  }, [isPlaying, offset]);
+    play(songs, offset, isPlaying, position);
+  }, [isPlaying, offset, songs, position]);
 
-  if (!deviceId) return <CircularProgress />;
+  useEffect(() => {
+    setTimeout(() => setLoading(false), 5000);
+  }, []);
+
+  if (!deviceId || loading) return <CircularProgress />;
 
   const onPlay = () => {
     togglePlay();
@@ -69,13 +75,19 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
 
   return (
     <>
-      <IconButton onClick={() => setOffset(Math.max(0, offset - 1))}>
+      <IconButton onClick={() => {
+        setOffset(Math.max(0, offset - 1));
+        setPosition(0);
+      }}>
         <SkipPreviousIcon />
       </IconButton>
       <IconButton onClick={onPlay}>
         {!playerState || playerState.paused ? <PlayArrowIcon /> : <PauseIcon />}
       </IconButton>
-      <IconButton onClick={() => setOffset(Math.min(songs.length - 1, offset + 1))}>
+      <IconButton onClick={() => {
+        setOffset(Math.min(songs.length - 1, offset + 1));
+        setPosition(0);
+      }}>
         <SkipNextIcon />
       </IconButton>
     </>

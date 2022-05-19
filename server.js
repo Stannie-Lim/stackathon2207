@@ -59,4 +59,5 @@ io.on('connection', socket => {
   socket.on('sync_songs', ({ roomId, songs }) => io.to(roomId).emit('sync_songs', songs));
   socket.on('change_song', ({ roomId, index }) => io.to(roomId).emit('change_song', index));
   socket.on('pauseunpause', ({ roomId, play }) => io.to(roomId).emit('pauseunpause', play));
+  socket.on('change_position', ({ roomId, position }) => io.to(roomId).emit('change_position', position));
 });

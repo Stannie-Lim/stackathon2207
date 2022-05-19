@@ -5,7 +5,7 @@ export const RoomUsers = ({ users }) => {
   return (
     <Grid item xs={6} style={{ overflow: 'auto', maxHeight: '80vh', }}>
       {users.map(user => (
-        <Card variant="outlined" key={user.spotifyId} style={{ padding: '0.5rem' }} key={user.id}>
+        <Card variant="outlined" key={user.spotifyId} style={{ padding: '0.5rem' }}>
           <Grid container alignItems="center">
             <Grid item>
               <Avatar src={user.imageUrl} />

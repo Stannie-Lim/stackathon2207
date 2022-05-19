@@ -55,54 +55,54 @@ export const Room = ({ match, history }) => {
     const getPlaylists = async () => {
       setLoading(true);
 
-      const url = `https://api.spotify.com/v1/me/playlists`;
-      const { data } = await AxiosHttpRequest('GET', url);
-      const tracks = data.items.map(({ tracks }) => tracks);
+      try {
+        socket.emit('join_room', { roomcode: roomId, user });
 
-      const songs = (await Promise.all(
-        tracks.map(track => (
-          AxiosHttpRequest('GET', track.href)
-        ))
-      )).map(({ data }) => data.items).flat();
+        const removed = removeDuplicates(songs);
 
-      socket.emit('join_room', { 
-        user,
-        roomcode: roomId,
-        songs,
-      });
+        const getRoomData = async() => {
+          const { data } = await AxiosHttpRequest('GET', `/api/room/${roomId}`);
+          setRoomData(data);
+        };
 
-      const removed = removeDuplicates(songs);
+        const setUpSocket = () => {
+          socket.on('join', (room) => {
+            setUsers(room.users);
+            socket.emit('sync_songs', { roomId, userId: user.id });
+          });
 
-      const getRoomData = async() => {
-        const { data } = await AxiosHttpRequest('GET', `/api/room/${roomId}`);
-        setRoomData(data);
-      };
+          socket.on('sync_songs', async (userId) => {
+            const url = `https://api.spotify.com/v1/users/${userId}/playlists`;
+            const { data } = await AxiosHttpRequest('GET', url);
+            const tracks = data.items.map(({ tracks }) => tracks);
 
-      const setUpSocket = () => {
-        socket.on('join', (room) => {
-          setUsers(room.users);
-          socket.emit('sync_songs', { roomId, songs });
-        });
+            const currentSongs = (await Promise.all(
+              tracks.map(track => (
+                AxiosHttpRequest('GET', track.href)
+              ))
+            )).map(({ data }) => data.items).flat();
 
-        socket.on('sync_songs', (roomSongs) => {
-          setSongs(removeDuplicates([...songs, ...roomSongs]));
-        });
+            setSongs(removeDuplicates([...songs, ...currentSongs]));
+          });
 
-        socket.on('change_song', (index) => {
-          setOffset(index);
-        });
+          socket.on('change_song', (index) => {
+            setOffset(index);
+          });
 
-        socket.on('pauseunpause', (play) => {
-          setPlay(play);
-        });
+          socket.on('pauseunpause', (play) => {
+            setPlay(play);
+          });
 
-        getRoomData();
-        setSongs(removed);
-        setLoading(false);
-        setSocketState(socket);
-      };
+          getRoomData();
+          setSongs(removed);
+          setLoading(false);
+          setSocketState(socket);
+        };
 
-      setUpSocket();
+        setUpSocket();
+      } catch (error) {
+
+      }
     };
 
     getPlaylists();
@@ -126,7 +126,7 @@ export const Room = ({ match, history }) => {
         <RoomNav roomId={roomId} leaveRoom={leaveRoom} history={history} />
         <Grid container item justifyContent="space-between" spacing={5}>
           <RoomUsers users={users} />
-          <Songs loading={loading} songs={songs} />
+          <Songs loading={loading} songs={songs} offset={offset} />
         </Grid>
         <Grid item xs={12}>
           <SpotifyWebPlayer songs={songs} offset={offset} isPlaying={play} isPlay={play} togglePlay={togglePlay} setOffset={setOffset} setPosition={setPosition} position={position} />

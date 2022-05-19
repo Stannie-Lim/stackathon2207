@@ -17,15 +17,14 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
   const [loading, setLoading] = useState(true);
 
   const play = async (songs, offset, isPlaying, position) => {
-    console.log(offset, isPlaying);
     try {
       if (!isPlaying) {
-        await AxiosHttpRequest('PUT', `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, JSON.stringify({ uris: songs.map(({ track }) => track.uri), position_ms: playerState?.position || 0, offset: { position: offset } }));
+        await AxiosHttpRequest('PUT', `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, JSON.stringify({ uris: songs.map(({ track }) => track.uri), position_ms: position, offset: { position: offset } }));
       } else {
         await AxiosHttpRequest('PUT', `https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`);
       }
     } catch (error) {
-      console.log(error);
+      
     }
   };
 

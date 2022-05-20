@@ -66,23 +66,28 @@ export const Room = ({ match, history }) => {
         };
 
         const setUpSocket = () => {
-          socket.on('join', (room) => {
+          socket.on('join', async (room) => {
             setUsers(room.users);
-            socket.emit('sync_songs', { roomId, userId: user.id });
+
+            const songs = (await Promise.all(
+              room.users.map(async user => {
+                const userId = user.spotifyId;
+                const url = `https://api.spotify.com/v1/users/${userId}/playlists`;
+                const { data } = await AxiosHttpRequest('GET', url);
+                const tracks = data.items.map(({ tracks }) => tracks);
+                const sortedByLength = tracks.sort((a, b) => a.total - b.total);
+  
+                const currentSongs = (await AxiosHttpRequest('GET', sortedByLength[sortedByLength.length - 1].href)).data.items.flat();
+  
+                return currentSongs;
+              })
+            )).flat();
+
+            socket.emit('sync_songs', { roomId, songs });
           });
 
-          socket.on('sync_songs', async (userId) => {
-            const url = `https://api.spotify.com/v1/users/${userId}/playlists`;
-            const { data } = await AxiosHttpRequest('GET', url);
-            const tracks = data.items.map(({ tracks }) => tracks);
-
-            const currentSongs = (await Promise.all(
-              tracks.map(track => (
-                AxiosHttpRequest('GET', track.href)
-              ))
-            )).map(({ data }) => data.items).flat();
-
-            setSongs(removeDuplicates([...songs, ...currentSongs]));
+          socket.on('sync_songs', async (songs) => {
+            setSongs(removeDuplicates(songs));
           });
 
           socket.on('change_song', (index) => {
@@ -106,6 +111,8 @@ export const Room = ({ match, history }) => {
     };
 
     getPlaylists();
+
+    return leaveRoom;
   }, []);
 
   useEffect(() => {

@@ -30,7 +30,8 @@ io.on('connection', socket => {
       await user.save();
     }
 
-    io.to(roomcode).emit('join', await Room.findByPk(roomcode, { include: User }));
+    const room = await Room.findByPk(roomcode, { include: User });
+    io.to(roomcode).emit('join', room);
   });
 
   socket.on('join_room', async ({ user, roomcode, songs }) => {
@@ -52,11 +53,11 @@ io.on('connection', socket => {
     await dbUser[0].save();
 
     socket.join(roomcode);
-    io.to(roomcode).emit('join', await Room.findByPk(roomcode, { include: User }));
-    io.to(roomcode).emit('sync_songs', songs);
+    const foundRoom = await Room.findByPk(roomcode, { include: User });
+    io.to(roomcode).emit('join', foundRoom);
   });
 
-  socket.on('sync_songs', ({ roomId, userId }) => io.to(roomId).emit('sync_songs', userId));
+  socket.on('sync_songs', ({ roomId, songs }) => io.to(roomId).emit('sync_songs', songs));
   socket.on('change_song', ({ roomId, index }) => io.to(roomId).emit('change_song', index));
   socket.on('pauseunpause', ({ roomId, play }) => io.to(roomId).emit('pauseunpause', play));
   socket.on('change_position', ({ roomId, position }) => io.to(roomId).emit('change_position', position));

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { CircularProgress, Grid, IconButton } from '@material-ui/core';
+import { Card, CircularProgress, Grid, IconButton, Typography } from '@material-ui/core';
 
 // icons
 import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
@@ -11,14 +11,12 @@ import PauseIcon from '@material-ui/icons/Pause';
 import { getAccessToken, AxiosHttpRequest } from '../helpers/axios';
 
 export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosition, isPlaying, position }) => {
-  const [player, setPlayer] = useState(null);
   const [deviceId, setDeviceId] = useState(null);
   const [playerState, setPlayerState] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   const play = async (songs, offset, isPlaying, position) => {
     try {
-      if (!isPlaying) {
+      if (!isPlaying && playerState) {
         await AxiosHttpRequest('PUT', `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, JSON.stringify({ uris: songs.map(({ track }) => track.uri), position_ms: position, offset: { position: offset } }));
       } else {
         await AxiosHttpRequest('PUT', `https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`);
@@ -44,7 +42,6 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
         });
 
         player.addListener('player_state_changed', (state) => {
-          // setPlay(!state.paused);
           setPosition(state.position);
           setPlayerState(state);
         });
@@ -53,7 +50,6 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
       createEventHandlers();
   
       player.connect();
-      setPlayer(player);
     }
 
   }, [window.Spotify]);
@@ -62,33 +58,57 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
     play(songs, offset, isPlaying, position);
   }, [isPlaying, offset, songs, position]);
 
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 5000);
-  }, []);
+  if (!deviceId) return <CircularProgress />;
 
-  if (!deviceId || loading) return <CircularProgress />;
+  const onPlay = async () => {
+    if (!playerState) {
+      await AxiosHttpRequest('PUT', `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, JSON.stringify({ uris: songs.map(({ track }) => track.uri), position_ms: position, offset: { position: offset } }));
+    }
 
-  const onPlay = () => {
     togglePlay();
   };
 
+  const currentTrack = songs[offset].track;
   return (
-    <>
-      <IconButton onClick={() => {
-        setOffset(Math.max(0, offset - 1));
-        setPosition(0);
-      }}>
-        <SkipPreviousIcon />
-      </IconButton>
-      <IconButton onClick={onPlay}>
-        {!playerState || playerState.paused ? <PlayArrowIcon /> : <PauseIcon />}
-      </IconButton>
-      <IconButton onClick={() => {
-        setOffset(Math.min(songs.length - 1, offset + 1));
-        setPosition(0);
-      }}>
-        <SkipNextIcon />
-      </IconButton>
-    </>
+    <Grid container>
+      <Grid container item xs={12} justifyContent="center">
+        <Grid item>
+          {currentTrack?.album?.images[0]?.url && <img src={`${currentTrack?.album?.images[0]?.url}`} style={{ width: 75, height: 75 }} />}
+        </Grid>
+      </Grid>
+      <Grid container item xs={12} justifyContent="center">
+        <Grid item>
+          <Typography variant="h4">{currentTrack.name}</Typography>
+        </Grid>
+      </Grid>
+      <Grid container item xs={12} justifyContent="center">
+        <Grid item>
+            <Typography variant="h6">{currentTrack.artists[0]?.name}</Typography>
+          </Grid>
+      </Grid>
+      <Grid container item xs={12} justifyContent="center">
+        <Grid item>
+          <IconButton onClick={() => {
+            setOffset(Math.max(0, offset - 1));
+            setPosition(0);
+          }}>
+            <SkipPreviousIcon />
+          </IconButton>
+        </Grid>
+        <Grid item>
+          <IconButton onClick={onPlay}>
+            {!playerState || playerState.paused ? <PlayArrowIcon /> : <PauseIcon />}
+          </IconButton>
+        </Grid>
+        <Grid item>
+          <IconButton onClick={() => {
+            setOffset(Math.min(songs.length - 1, offset + 1));
+            setPosition(0);
+          }}>
+            <SkipNextIcon />
+          </IconButton>
+        </Grid>
+      </Grid>
+    </Grid>
   );
 };

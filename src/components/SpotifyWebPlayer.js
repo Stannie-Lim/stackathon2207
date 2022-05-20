@@ -68,7 +68,7 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
     togglePlay();
   };
 
-  const currentTrack = songs[offset].track;
+  const currentTrack = songs[offset]?.track;
   return (
     <Grid container>
       <Grid container item xs={12} justifyContent="center">
@@ -78,12 +78,12 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
       </Grid>
       <Grid container item xs={12} justifyContent="center">
         <Grid item>
-          <Typography variant="h4">{currentTrack.name}</Typography>
+          <Typography variant="h4">{currentTrack?.name}</Typography>
         </Grid>
       </Grid>
       <Grid container item xs={12} justifyContent="center">
         <Grid item>
-            <Typography variant="h6">{currentTrack.artists[0]?.name}</Typography>
+            <Typography variant="h6">{currentTrack?.artists[0]?.name}</Typography>
           </Grid>
       </Grid>
       <Grid container item xs={12} justifyContent="center">

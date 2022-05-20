@@ -134,30 +134,11 @@ export const Room = ({ match, history }) => {
 
   useEffect(() => {
     if (socketState) {
-      const found = users.find(({ spotifyId }) => spotifyId === user.id);
       socketState.emit('pauseunpause', { roomId, play });
-      if (play) {
-        socketState.emit('message', { roomId, message: { id: roomHistory.length, type: 'notification', message: `${user.display_name} just played the music`, time: new Date(), user: found }});
-      } else {
-        socketState.emit('message', { roomId, message: { id: roomHistory.length, type: 'notification', message: `${user.display_name} just paused the music`, time: new Date(), user: found }});
-      }
-    }
-  }, [play]);
-
-  useEffect(() => {
-    if (socketState) {
       socketState.emit('change_position', { roomId, position });
-    }
-  }, [position]);
-
-  useEffect(() => {
-    if (socketState) {
-      const found = users.find(({ spotifyId }) => spotifyId === user.id);
       socketState.emit('change_song', { roomId, index: offset });
-      socketState.emit('message', { roomId, message: { id: roomHistory.length, type: 'notification', message: `${user.display_name} just started ${songs[offset].track.name}`, time: new Date(), user: found }});
-
     }
-  }, [offset]);
+  }, [play, position, offset]);
 
   const togglePlay = () => {
     setPlay(!play);

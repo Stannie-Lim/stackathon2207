@@ -28,7 +28,6 @@ export const Chat = ({ user, roomHistory, sendMessage }) => {
       <Grid container item style={{ height: '60vh', overflow: 'scroll' }}>
         <div style={{ display: 'flex', width: '100%', flexDirection: 'column', flexWrap: 'wrap' }}>
           {roomHistory.map((history) => {
-            console.log(history);
             if (history.type === 'notification') {
               return (
                 <div id={history.id} style={{ height: 'min-content', marginTop: '16px', }}>
@@ -53,23 +52,23 @@ export const Chat = ({ user, roomHistory, sendMessage }) => {
           <div ref={bottomOfChat} />
         </div>
       </Grid>
-      <Grid container item alignItems="center" style={{ width: '100%' }}>
-        <form onSubmit={onSubmit}>
-          <Grid item>
-            <TextField
-              value={input}
-              onChange={({ target }) => setInput(target.value)}
-              placeholder="Message your friends!"
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={1}>
-            <IconButton onClick={() => null} type="submit">
-              <SendIcon />
-            </IconButton>
-          </Grid>
-        </form>
-      </Grid>
+      <form onSubmit={onSubmit}>
+        <Grid container item alignItems="center" style={{ width: '100%' }}>
+            <Grid item xs={11}>
+              <TextField
+                value={input}
+                onChange={({ target }) => setInput(target.value)}
+                placeholder="Message your friends!"
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={1}>
+              <IconButton onClick={() => null} type="submit">
+                <SendIcon />
+              </IconButton>
+            </Grid>
+        </Grid>
+      </form>
     </Grid>
   );
 };

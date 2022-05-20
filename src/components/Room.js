@@ -71,7 +71,8 @@ export const Room = ({ match, history }) => {
         const setUpSocket = () => {
           socket.on('join', async ({ room, user }) => {
             setUsers(room.users);
-            setRoomHistory([...roomHistory, { id: roomHistory.length, type: 'notification', message: `${user.name} has joined!`, time: new Date(), user }]);
+            socket.emit('message', { roomId, message: { id: roomHistory.length, type: 'notification', message: `${user.name} has joined!`, time: new Date(), user, }});
+
 
             const songs = (await Promise.all(
               room.users.map(async user => {
@@ -133,11 +134,30 @@ export const Room = ({ match, history }) => {
 
   useEffect(() => {
     if (socketState) {
+      const found = users.find(({ spotifyId }) => spotifyId === user.id);
       socketState.emit('pauseunpause', { roomId, play });
-      socketState.emit('change_song', { roomId, index: offset });
+      if (play) {
+        socketState.emit('message', { roomId, message: { id: roomHistory.length, type: 'notification', message: `${user.display_name} just played the music`, time: new Date(), user: found }});
+      } else {
+        socketState.emit('message', { roomId, message: { id: roomHistory.length, type: 'notification', message: `${user.display_name} just paused the music`, time: new Date(), user: found }});
+      }
+    }
+  }, [play]);
+
+  useEffect(() => {
+    if (socketState) {
       socketState.emit('change_position', { roomId, position });
     }
-  }, [position, play, offset, position]);
+  }, [position]);
+
+  useEffect(() => {
+    if (socketState) {
+      const found = users.find(({ spotifyId }) => spotifyId === user.id);
+      socketState.emit('change_song', { roomId, index: offset });
+      socketState.emit('message', { roomId, message: { id: roomHistory.length, type: 'notification', message: `${user.display_name} just started ${songs[offset].track.name}`, time: new Date(), user: found }});
+
+    }
+  }, [offset]);
 
   const togglePlay = () => {
     setPlay(!play);
@@ -155,12 +175,12 @@ export const Room = ({ match, history }) => {
 
   const sendMessage = (message) => {
     const found = users.find(({ spotifyId }) => spotifyId === user.id);
-    socketState.emit('message', { roomId, user: found, history: [...roomHistory, { id: roomHistory.length, type: 'message', message, time: new Date(), user: found }]});
-
-    socketState.on('message', ({ history }) => {
-      setRoomHistory(history);
-    });
+    socketState.emit('message', { roomId, message: { id: roomHistory.length, type: 'message', message, time: new Date(), user: found }});
   };
+
+  socketState?.on('message', ({ message }) => {
+    setRoomHistory([...roomHistory, message]);
+  });
 
   return (
     <RoomContext.Provider value={roomData}>

@@ -133,7 +133,7 @@ export const Room = ({ match, history }) => {
         <RoomNav roomId={roomId} leaveRoom={leaveRoom} history={history} />
         <Grid container item justifyContent="space-between" spacing={5}>
           <RoomUsers users={users} />
-          <Songs loading={loading} songs={songs} offset={offset} />
+          <Songs loading={loading} songs={songs} offset={offset} setOffset={setOffset} />
         </Grid>
         <Grid item xs={12}>
           <SpotifyWebPlayer songs={songs} offset={offset} isPlaying={play} isPlay={play} togglePlay={togglePlay} setOffset={setOffset} setPosition={setPosition} position={position} />

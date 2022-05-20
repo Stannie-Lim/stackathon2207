@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import { Button, Dialog, DialogTitle, DialogActions, DialogContent, TextField, Grid } from '@material-ui/core';
+import { Button, Dialog, DialogTitle, DialogActions, DialogContent, TextField, Grid, Card, Avatar, Typography } from '@material-ui/core';
 
 import { AxiosHttpRequest } from '../helpers/axios';
 
@@ -38,15 +38,25 @@ export const Home = () => {
   if (!!isInRoom) {
     return <Redirect to={`/room/${isInRoom.id}`} />;
   }
-
+  
   return (
     <>
-      <Grid container justifyContent="center" spacing={2} style={{ height: '100%' }} alignItems="center">
-        <Grid item xs={3}>
-          <Button fullWidth variant="outlined" color="primary" onClick={createRoom}>Create Room</Button>
+      <Grid container justifyContent="center" style={{ height: '100%' }} alignItems="center">
+        <Grid item xs={2}>
+          <Card variant="outlined" style={{ padding: '2rem' }}>
+            <Grid container item justifyContent="center" alignItems="center">
+              <Avatar src={user?.images[0]?.url} />
+              <Typography variant="h5">{user.display_name}</Typography>
+            </Grid>
+          </Card>
         </Grid>
-        <Grid item xs={3}>
-          <Button fullWidth variant="outlined" color="primary" onClick={() => setModalOpen(true)}>Join Room</Button>
+        <Grid container item justifyContent="center" spacing={3}>
+          <Grid item xs={3}>
+            <Button fullWidth variant="outlined" color="primary" onClick={createRoom}>Create Room</Button>
+          </Grid>
+          <Grid item xs={3}>
+            <Button fullWidth variant="outlined" color="primary" onClick={() => setModalOpen(true)}>Join Room</Button>
+          </Grid>
         </Grid>
       </Grid>
       {modalOpen && (

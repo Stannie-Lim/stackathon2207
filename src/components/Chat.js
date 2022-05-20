@@ -26,41 +26,36 @@ export const Chat = ({ user, roomHistory, sendMessage }) => {
   return (
     <Grid container item xs={4} style={{ maxHeight: '65vh' }}>
       <Grid container item style={{ height: '60vh', overflow: 'scroll' }}>
-        {roomHistory.map((history) => {
-          if (history.type === 'notification') {
-            return (
-              <Grid container item id={history.id} xs={12}>
-                <Grid item xs={12}>
+        <div style={{ display: 'flex', width: '100%', flexDirection: 'column', flexWrap: 'wrap' }}>
+          {roomHistory.map((history) => {
+            console.log(history);
+            if (history.type === 'notification') {
+              return (
+                <div id={history.id} style={{ height: 'min-content', marginTop: '16px', }}>
                   <Avatar src={history.user.imageUrl} />
                   <Typography variant="caption">{dayjs(history.time).format('L')} at {dayjs(history.time).format('LTS')}</Typography>
-                </Grid>
-                <Grid item xs={12}>
                   <Typography>{history.message}</Typography>
-                </Grid>
-              </Grid>
-            );
-          }
+                </div>
+              );
+            }
 
-          if (history.type === 'message') {
-            return (
-              <Grid container item id={history.id} justifyContent={history.user.spotifyId === user.id ? "flex-end" : "flex-start"} xs={12}>
-                <Grid item>
+            if (history.type === 'message') {
+              return (
+                <div style={{ height: 'min-content', marginTop: '16px', backgroundColor: history.user.spotifyId === user.id ? 'beige' : 'white' }}>
                   <Avatar src={history.user.imageUrl} />
-                  <Typography variant="h6">{history.user.name}</Typography>
+                  <Typography variant="h6" style={{ fontWeight: history.user.spotifyId === user.id ? 600 : 400 }}>{history.user.name}</Typography>
                   <Typography variant="caption">{dayjs(history.time).format('L')} at {dayjs(history.time).format('LTS')}</Typography>
-                </Grid>
-                <Grid item>
                   <Typography>{history.message}</Typography>
-                </Grid>
-              </Grid>
-            );
-          }
-        })}
-        <div ref={bottomOfChat} />
+                </div>
+              );
+            }
+          })}
+          <div ref={bottomOfChat} />
+        </div>
       </Grid>
-      <Grid container item alignItems="center">
+      <Grid container item alignItems="center" style={{ width: '100%' }}>
         <form onSubmit={onSubmit}>
-          <Grid item xs={11}>
+          <Grid item>
             <TextField
               value={input}
               onChange={({ target }) => setInput(target.value)}

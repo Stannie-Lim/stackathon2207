@@ -155,10 +155,10 @@ export const Room = ({ match, history }) => {
 
   const sendMessage = (message) => {
     const found = users.find(({ spotifyId }) => spotifyId === user.id);
-    socketState.emit('message', { roomId, user: found, message, time: new Date() });
+    socketState.emit('message', { roomId, user: found, history: [...roomHistory, { id: roomHistory.length, type: 'message', message, time: new Date(), user: found }]});
 
-    socketState.on('message', ({ roomId, user, message, time }) => {
-      setRoomHistory([...roomHistory, { id: roomHistory.length, type: 'message', message, time, user }]);
+    socketState.on('message', ({ history }) => {
+      setRoomHistory(history);
     });
   };
 

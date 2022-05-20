@@ -6,7 +6,7 @@ export const Songs = ({ loading, songs, offset, setOffset }) => {
   if (loading) return <CircularProgress />
   
   return (
-    <Grid container item xs={6} style={{ maxHeight: '80vh', overflow: 'auto', }}>
+    <Grid container item xs={6} style={{ maxHeight: '65vh', overflow: 'auto', }}>
       {songs.map(({ track }, index) => (
         <ListItem button key={track.id} onClick={() => {
           setOffset(index);

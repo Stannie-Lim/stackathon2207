@@ -11,10 +11,10 @@ export const RoomNav = ({ roomId, leaveRoom, history }) => {
 
   return (
     <Grid container item>
-      <Grid item>
+      <Grid item style={{ height: '5vh' }}>
         <Typography onClick={onClick} style={{ cursor: 'pointer', color: 'dodgerBlue', }}>Leave room</Typography>
       </Grid>
-      <Grid container item justifyContent="center">
+      <Grid container item justifyContent="center" style={{ height: '5vh' }}>
         <Grid item onMouseLeave={() => setTimeout(() => setIsClicked(false), 1000)}>
           <Tooltip title={isClicked ? "Copied!" : "Click to copy"}>
             <Typography
@@ -28,7 +28,6 @@ export const RoomNav = ({ roomId, leaveRoom, history }) => {
               {roomId}
             </Typography>
           </Tooltip>
-
         </Grid>
       </Grid>
     </Grid>

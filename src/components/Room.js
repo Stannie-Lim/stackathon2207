@@ -12,6 +12,7 @@ import { Songs } from './Songs';
 import { RoomNav } from './RoomNav';
 import { RoomUsers } from './RoomUsers';
 import { SpotifyWebPlayer } from './SpotifyWebPlayer';
+import { Chat } from './Chat';
 
 const removeDuplicates = (songs) => {
   const idToSong = new Map();
@@ -41,6 +42,8 @@ export const Room = ({ match, history }) => {
   const [socketState, setSocketState] = useState(null);
   const [play, setPlay] = useState(false);
   const [position, setPosition] = useState(0);
+  const [hovers, setHovers] = useState(new Map());
+  const [roomHistory, setRoomHistory] = useState([]);
   
   const leaveRoom = () => {
     socketState.emit('disconnect_room', { userId: user.id, roomcode: roomId });
@@ -66,8 +69,9 @@ export const Room = ({ match, history }) => {
         };
 
         const setUpSocket = () => {
-          socket.on('join', async (room) => {
+          socket.on('join', async ({ room, user }) => {
             setUsers(room.users);
+            setRoomHistory([...roomHistory, { id: roomHistory.length, type: 'notification', message: `${user.name} has joined!`, time: new Date(), user }]);
 
             const songs = (await Promise.all(
               room.users.map(async user => {
@@ -96,6 +100,18 @@ export const Room = ({ match, history }) => {
 
           socket.on('pauseunpause', (play) => {
             setPlay(play);
+          });
+
+          socket.on('hover', ({ user, index }) => {
+            const copy = new Map(hovers);
+            copy.set(index, user);
+            setHovers(copy);
+          });
+
+          socket.on('unhover', ({ user, index }) => {
+            const copy = new Map(hovers);
+            copy.delete(index, user);
+            setHovers(copy);
           });
 
           getRoomData();
@@ -127,13 +143,33 @@ export const Room = ({ match, history }) => {
     setPlay(!play);
   };
 
+  const onHover = (index) => {
+    const found = users.find(({ spotifyId }) => spotifyId === user.id);
+    socketState.emit('hover', { roomId, user: found, index });
+  };
+
+  const onUnhover = (index) => {
+    const found = users.find(({ spotifyId }) => spotifyId === user.id);
+    socketState.emit('unhover', { roomId, user: found, index });
+  };
+
+  const sendMessage = (message) => {
+    const found = users.find(({ spotifyId }) => spotifyId === user.id);
+    socketState.emit('message', { roomId, user: found, message, time: new Date() });
+
+    socketState.on('message', ({ roomId, user, message, time }) => {
+      setRoomHistory([...roomHistory, { id: roomHistory.length, type: 'message', message, time, user }]);
+    });
+  };
+
   return (
     <RoomContext.Provider value={roomData}>
       <Grid container spacing={3}>
         <RoomNav roomId={roomId} leaveRoom={leaveRoom} history={history} />
         <Grid container item justifyContent="space-between" spacing={5}>
-          <RoomUsers users={users} />
-          <Songs loading={loading} songs={songs} offset={offset} setOffset={setOffset} />
+          <RoomUsers users={users} user={user} />
+          <Songs user={user} loading={loading} songs={songs} offset={offset} setOffset={setOffset} onHover={onHover} onUnhover={onUnhover} hovers={hovers} />
+          <Chat user={user} roomHistory={roomHistory} sendMessage={sendMessage} />
         </Grid>
         <Grid item xs={12}>
           <SpotifyWebPlayer songs={songs} offset={offset} isPlaying={play} isPlay={play} togglePlay={togglePlay} setOffset={setOffset} setPosition={setPosition} position={position} />

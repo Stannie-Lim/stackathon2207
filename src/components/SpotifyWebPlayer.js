@@ -70,10 +70,10 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
 
   const currentTrack = songs[offset]?.track;
   return (
-    <Grid container>
+    <Grid container style={{ height: '25vh' }}>
       <Grid container item xs={12} justifyContent="center">
         <Grid item>
-          {currentTrack?.album?.images[0]?.url && <img src={`${currentTrack?.album?.images[0]?.url}`} style={{ width: 75, height: 75 }} />}
+          {currentTrack?.album?.images[0]?.url && <img src={`${currentTrack?.album?.images[0]?.url}`} style={{ height: '10vh' }} />}
         </Grid>
       </Grid>
       <Grid container item xs={12} justifyContent="center">

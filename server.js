@@ -34,7 +34,7 @@ io.on('connection', socket => {
     io.to(roomcode).emit('join', room);
   });
 
-  socket.on('join_room', async ({ user, roomcode, songs }) => {
+  socket.on('join_room', async ({ user, roomcode }) => {
     const userId = user.id;
 
     const dbUser = await User.findOrCreate({
@@ -54,11 +54,14 @@ io.on('connection', socket => {
 
     socket.join(roomcode);
     const foundRoom = await Room.findByPk(roomcode, { include: User });
-    io.to(roomcode).emit('join', foundRoom);
+    io.to(roomcode).emit('join', { room: foundRoom, user: dbUser[0] });
   });
 
   socket.on('sync_songs', ({ roomId, songs }) => io.to(roomId).emit('sync_songs', songs));
   socket.on('change_song', ({ roomId, index }) => io.to(roomId).emit('change_song', index));
   socket.on('pauseunpause', ({ roomId, play }) => io.to(roomId).emit('pauseunpause', play));
   socket.on('change_position', ({ roomId, position }) => io.to(roomId).emit('change_position', position));
+  socket.on('hover', (data) => io.to(data.roomId).emit('hover', data));
+  socket.on('unhover', (data) => io.to(data.roomId).emit('unhover', data));
+  socket.on('message', data => io.to(data.roomId).emit('message', data));
 });

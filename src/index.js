@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { render } from 'react-dom';
 import { HashRouter, Route, Switch, Redirect } from 'react-router-dom';
 
-import { Link, Grid } from '@material-ui/core';
+import { Typography, Link, Grid } from '@material-ui/core';
 
 import { AxiosHttpRequest, getAccessToken } from './helpers/axios';
 
@@ -13,8 +13,17 @@ import { Room } from './components/Room';
 import { UserContext } from './context';
 
 const LoginButton = () => {
+  const [hasToken, setHasToken] = useState('');
+
+  useEffect(() => {
+    setHasToken(!!getAccessToken());
+  }, []);
+    
   return (
     <Grid container justifyContent="center">
+      <Grid item xs={12}>
+        {hasToken && <Typography>Oops stannie didnt add you to the dev environment on spotify. Ask him to add you to dev environment!</Typography>}
+      </Grid>
       <Grid item>
         <Link href={`/api/auth`}>Login to Spotify</Link>
       </Grid>

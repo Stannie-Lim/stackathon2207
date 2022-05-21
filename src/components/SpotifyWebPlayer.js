@@ -33,6 +33,7 @@ export const SpotifyWebPlayer = ({ songs, offset, setOffset, togglePlay, setPosi
       const player = new window.Spotify.Player({
         name: 'hehe',
         getOAuthToken: cb => { cb(token); },
+        volume: 0.2,
       });
 
       const createEventHandlers = () => {

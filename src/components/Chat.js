@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 
-import { Grid, TextField, IconButton, Typography, Avatar } from '@material-ui/core';
+import { Grid, TextField, IconButton, Typography, Avatar, Paper } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
 
@@ -25,8 +25,8 @@ export const Chat = ({ user, roomHistory, sendMessage }) => {
 
   return (
     <Grid container item xs={4} style={{ maxHeight: '65vh' }}>
-      <Grid container item style={{ height: '60vh', overflow: 'scroll' }}>
-        <div style={{ display: 'flex', width: '100%', flexDirection: 'column', flexWrap: 'wrap' }}>
+      <Grid container item style={{ height: '60vh', overflowX: 'auto' }}>
+        <Paper variant="outlined" style={{ display: 'flex', width: '100%', flexDirection: 'column', flexWrap: 'wrap' }}>
           {roomHistory.map((history) => {
             if (history.type === 'notification') {
               return (
@@ -50,12 +50,13 @@ export const Chat = ({ user, roomHistory, sendMessage }) => {
             }
           })}
           <div ref={bottomOfChat} />
-        </div>
+        </Paper>
       </Grid>
-      <form onSubmit={onSubmit}>
-        <Grid container item alignItems="center" style={{ width: '100%' }}>
+      <form onSubmit={onSubmit} style={{ width: '100%' }}>
+        <Grid container item alignItems="center">
             <Grid item xs={11}>
               <TextField
+                variant="outlined"
                 value={input}
                 onChange={({ target }) => setInput(target.value)}
                 placeholder="Message your friends!"
